@@ -1,4 +1,8 @@
 registerForEvent("onInit", function()
+	rootPath = "./plugins/cyber_engine_tweaks/mods/timelapse_toolkit/"
+	CPS = require(rootPath.."CPStyling")
+	theme = CPS.theme
+	color = CPS.color
 	ts = Game.GetTimeSystem()
 	TimeDilation = 1
 	IsPaused = false
@@ -44,7 +48,7 @@ registerForEvent("onDraw", function()
 			end
 			ImGui.SameLine(230)
 			btnGetTime = ImGui.Button("Get Current Time")
-			
+
 			ImGui.PushItemWidth(250)
 			TimeDilation = ImGui.SliderInt("", TimeDilation, 1, 10, "%dx")
 			ImGui.SameLine(265)
