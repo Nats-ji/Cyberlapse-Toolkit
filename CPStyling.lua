@@ -23,7 +23,7 @@
 -- SOFTWARE.
 
 local CPStyle = {}
-local rootPath = "./plugins/cyber_engine_tweaks/mods/timelapse_toolkit/"
+local rootPath = "./plugins/cyber_engine_tweaks/mods/cyberlapse_toolkit/"
 
 local function isModuleAvailable(module)
     res = pcall(require,module)
@@ -628,6 +628,21 @@ function CPStyle.loadPNG(imagepath)
   end
   img.pixels = x
   return img
+end
+
+function CPStyle.fileExists(filename)
+   local f=io.open(filename,"r")
+   if (f~=nil) then io.close(f) return true else return false end
+end
+
+function CPStyle.getCWD(mod_name)
+  if CPStyle.fileExists("./bin/x64/plugins/cyber_engine_tweaks/mods/"..mod_name.."/init.lua") then
+    return "./bin/x64/plugins/cyber_engine_tweaks/mods/"..mod_name.."/"
+  elseif CPStyle.fileExists("./plugins/cyber_engine_tweaks/mods/"..mod_name.."/init.lua") then
+    return "./plugins/cyber_engine_tweaks/mods/"..mod_name.."/"
+  elseif  CPStyle.fileExists("./"..mod_name.."/init.lua") then
+    return "./"..mod_name.."/"
+  end
 end
 
 return CPStyle
