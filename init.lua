@@ -37,10 +37,10 @@ registerForEvent("onInit", function()
     print("Timelapse Toolkit Loaded.")
   end)
 
-registerHotkey("open_overlay", "Open Interface", function()
-	drawWindow = not drawWindow
-	UpdateSettings()
-end)
+-- registerHotkey("open_overlay", "Open Interface", function()
+-- 	drawWindow = not drawWindow
+-- 	UpdateSettings()
+-- end)
 
 registerForEvent("onUpdate", function()
 	if btnSetTime then
