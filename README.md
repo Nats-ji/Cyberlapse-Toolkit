@@ -1,5 +1,5 @@
 # CyberLapse ToolKit
-A toolkit with simple GUI for making timelapse videos and specialized screenshots inside Cyberpunk 2077.
+A toolkit with a simple GUI for making timelapse videos and specialized screenshots inside Cyberpunk 2077.
 
 Best to use in companion with https://github.com/Nats-ji/Game-Cinematic-Timelapse-AHI
 
