@@ -18,15 +18,15 @@ Best to use in companion with https://github.com/Nats-ji/Game-Cinematic-Timelaps
 2. It is not a foolproof tool for you to click and shoot.
 
 # FAQs
-### How to record timelapse video?
+### How to record a timelapse video?
 Ask Google
-### How to record startrail video?
+### How to record a star trail video?
 Ask Google
-### Why should I use screanshot instead of screen record?
+### Why should I use screanshots instead of screen record?
 Ask Google
 ### How do I post-process the images?
 Ask Google
-### What softwares should I use to post-process images?
+### What software should I use to post-process images?
 Ask Google
 
 # Acknowledgement
