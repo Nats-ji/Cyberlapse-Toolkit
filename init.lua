@@ -1,13 +1,12 @@
 registerForEvent("onInit", function()
-	rootPath = "./plugins/cyber_engine_tweaks/mods/cyberlapse_toolkit/"
-	CPS = require(rootPath.."CPStyling")
+	CPS = require("CPStyling")
 	theme = CPS.theme
 	color = CPS.color
-	rootPathIO = CPS.getCWD("cyberlapse_toolkit")
 	wWidth, wHeight = GetDisplayResolution()
 	TimeSystem = Game.GetTimeSystem()
 
   drawWindow = false
+	drawBody = true
 
 	Settings = {
 		AspectRatio = wWidth / wHeight,
@@ -26,12 +25,12 @@ registerForEvent("onInit", function()
 		AirTraffic = false,
 		Crowd = false,
 		Autosave = false,
-		BoostLOD = false
+		BoostLOD = false,
+		CameraShake = false,
+		CityLight = false,
 	}
-	if CPS.fileExists(rootPath.."icon.png") then
-		icon = CPS.loadPNG(rootPath.."icon.png")
-	elseif CPS.fileExists(rootPathIO.."icon.png") then
-		icon = CPS.loadPNG(rootPathIO.."icon.png")
+	if CPS.fileExists("icon.png") then
+		icon = CPS.loadPNG("icon.png")
 	else
 		icon = nil
 	end
@@ -40,15 +39,7 @@ registerForEvent("onInit", function()
 
 registerHotkey("open_overlay", "Open Interface", function()
 	drawWindow = not drawWindow
-	Settings.IsTimePaused = TimeSystem:IsPausedState()
-	Settings.HFOV = math.deg(2 * math.atan( math.tan(math.rad(Game.GetPlayer():GetFPPCameraComponent():GetFOV()/2)) * Settings.AspectRatio ))
-	Settings.Zoom = Game.GetPlayer():GetFPPCameraComponent():GetZoom()
-	Settings.CameraPos = Game.GetPlayer():GetFPPCameraComponent():GetLocalPosition()
-	Settings.CameraOrientation = Game.GetPlayer():GetFPPCameraComponent():GetLocalOrientation()
-	if Game.GetQuestsSystem():GetFactStr("air_traffic_off") == 0 then Settings.AirTraffic = false else Settings.AirTraffic = true end
-	Settings.Crowd = not GameOptions.GetBool("Crowd", "Enabled")
-	Settings.Autosave = not GameOptions.GetBool("SaveConfig", "AutoSaveEnabled")
-	if GameOptions.GetFloat("LevelOfDetail", "DecalsHideDistance") == 40 and GameOptions.GetFloat("LevelOfDetail", "DynamicDecalsHideDistance") == 20 then Settings.BoostLOD = false else Settings.BoostLOD = true end
+	UpdateSettings()
 end)
 
 registerForEvent("onUpdate", function()
@@ -158,6 +149,41 @@ registerForEvent("onUpdate", function()
 			GameOptions.SetFloat("LevelOfDetail", "DynamicDecalsHideDistance", 20)
 		end
 	end
+	if cbCameraShake then
+		local settings = Game.GetSettingsSystem():GetRootGroup():GetGroups(true)
+		local gameplay_ss = settings[3]:GetGroups(true)
+		local acessibility_ss = gameplay_ss[1]:GetVars(true)
+		local camshake_ss = acessibility_ss[4]
+		if Settings.CameraShake then
+			camshake_ss:SetIndex(0)
+			Game.GetSettingsSystem():ConfirmChanges()
+		else
+			camshake_ss:SetIndex(2)
+			Game.GetSettingsSystem():ConfirmChanges()
+		end
+	end
+	if cbCityLight then
+		local scriptSystem =  Game.GetScriptableSystemsContainer()
+    local cityLightSystem = scriptSystem:Get('CityLightSystem')
+		if Settings.CityLight then
+			cityLightSystem:AddForcedStateRequest("ForcedOFF", "DEBUG", "Absolute", false)
+      cityLightSystem.state = 2
+		else
+			cityLightSystem:AddForcedStateRequest("DEFAULT", "DEBUG", "Absolute", false)
+      cityLightSystem.state = 0
+		end
+		cityLightSystem:UpdateCLSForcedState()
+	end
+	if btnVehicleLight then
+		local target = Game.GetTargetingSystem():GetLookAtObject(Game.GetPlayer(),false,false)
+		if target:IsVehicle() then
+			if target:GetVehiclePS():GetVehicleControllerPS().lightMode.value == "Off" then
+				target:GetVehiclePS():GetVehicleControllerPS():SetLightMode(2)
+			else
+				target:GetVehiclePS():GetVehicleControllerPS():SetLightMode(0)
+			end
+		end
+	end
 end)
 
 registerForEvent("onDraw", function()
@@ -165,66 +191,104 @@ registerForEvent("onDraw", function()
 		CPS.setThemeBegin()
 		ImGui.SetNextWindowPos(0,500, ImGuiCond.FirstUseEver)
 		ImGui.Begin("Cyberlapse Toolkit", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize)
+
 		if icon then
 			CPS.CPDraw("icon", icon, 1)
+			if ImGui.IsItemClicked() then drawBody = not drawBody end
 			ImGui.SameLine()
 			ImGui.AlignTextToFramePadding()
 		end
 		ImGui.Text("Cyberlapse Toolkit")
-		ImGui.Dummy(0,10)
-		ImGui.Text("Time")
-		ImGui.PushItemWidth(30)
-		Settings.timeH = ImGui.InputInt("h:", Settings.timeH, 0, 23)
-		ImGui.SameLine()
-		Settings.timeM = ImGui.InputInt("m:", Settings.timeM, 0, 59)
-		ImGui.SameLine()
-		Settings.timeS = ImGui.InputInt("s", Settings.timeS, 0, 59)
-		ImGui.PopItemWidth()
-		ImGui.SameLine()
-		btnSetTime = ImGui.Button("Set Time")
-		ImGui.SameLine()
-		btnGetTime = ImGui.Button("Get Current Time")
 
-		ImGui.PushItemWidth(200)
-		Settings.TimeDilation, sldTimeDilation = ImGui.SliderInt("##TimeDilation", Settings.TimeDilation, 1, 10, Settings.TimeDilationSilderText)
-		ImGui.PopItemWidth()
-		ImGui.SameLine()
-		ImGui.PushItemWidth(70)
-		Settings.TimeDilationFS, cobTimeDilationFS = ImGui.Combo("##TimeDilationFS", Settings.TimeDilationFS, "Faster\0Slower\0")
-		ImGui.PopItemWidth()
-		ImGui.SameLine()
-		btnResetTimeDilation = ImGui.Button("Reset##TimeDilation")
-		Settings.IsTimePaused, cbIsTimePaused = ImGui.Checkbox("Stop Day/Night Cycle", Settings.IsTimePaused)
-		ImGui.Separator()
-		ImGui.Spacing()
-		ImGui.AlignTextToFramePadding()
-		ImGui.Text("Camera Control")
-		ImGui.SameLine()
-		btnResetCam = ImGui.Button("Reset Camera")
-		ImGui.PushItemWidth(200)
-		Settings.HFOV, sldHFOV = ImGui.SliderFloat("Field of Veiw", Settings.HFOV, 30, 150, "%.0f degrees")
-		Settings.Zoom, sldZoom = ImGui.SliderFloat("Zoom", Settings.Zoom, 1, 10, "%.0fx")
-		Settings.CameraPos.x, sldCamX = ImGui.SliderFloat("Camera Left Right", Settings.CameraPos.x, -20, 20, "%.1f")
-		Settings.CameraPos.y, sldCamY = ImGui.SliderFloat("Camera Forward Backward", Settings.CameraPos.y, -20, 20, "%.1f")
-		Settings.CameraPos.z, sldCamZ = ImGui.SliderFloat("Camera Up Down", Settings.CameraPos.z, -20, 20, "%.1f")
-		Settings.CameraOrientation.i, sldCamI = ImGui.SliderFloat("Camera Pitch", Settings.CameraOrientation.i, -180, 180, "%.2f", 0.1)
-		Settings.CameraOrientation.j, sldCamJ = ImGui.SliderFloat("Camera Roll", Settings.CameraOrientation.j, -180, 180, "%.2f", 0.1)
-		Settings.CameraOrientation.k, sldCamK = ImGui.SliderFloat("Camera Yaw", Settings.CameraOrientation.k, -180, 180, "%.2f", 0.1)
-		ImGui.PopItemWidth()
-		ImGui.Separator()
-		ImGui.Text("Location")
-		btnGetLocation = ImGui.Button("Get Current Location")
-		btnSaveLocation = ImGui.Button("Save Location...")
-		btnLoadLocation = ImGui.Button("Load Location...")
-		ImGui.Separator()
-		ImGui.Text("Misc")
-		Settings.AirTraffic, cbAirTraffic = ImGui.Checkbox("Disable Air Traffic (Useful for astrophotography)", Settings.AirTraffic)
-		Settings.Crowd, cbCrowd = ImGui.Checkbox("Disable Crowd (NPC pedestrians and vehicles)", Settings.Crowd)
-		Settings.Autosave, cbAutosave = ImGui.Checkbox("Disable Auto Save", Settings.Autosave)
-		Settings.BoostLOD, cbBoostLOD = ImGui.Checkbox("Boost Level of Details Distance", Settings.BoostLOD)
-		-- veh = Game.GetTargetingSystem():GetLookAtObject(Game.GetPlayer(),false,false)
-		-- veh:TurnOn(true)
+		if drawBody then
+			ImGui.Dummy(0,10)
+			ImGui.Text("Time")
+			ImGui.PushItemWidth(30)
+			Settings.timeH = ImGui.InputInt("h:", Settings.timeH, 0, 23)
+			ImGui.SameLine()
+			Settings.timeM = ImGui.InputInt("m:", Settings.timeM, 0, 59)
+			ImGui.SameLine()
+			Settings.timeS = ImGui.InputInt("s", Settings.timeS, 0, 59)
+			ImGui.PopItemWidth()
+			ImGui.SameLine()
+			btnSetTime = ImGui.Button("Set Time")
+			ImGui.SameLine()
+			btnGetTime = ImGui.Button("Get Current Time")
+
+			ImGui.PushItemWidth(200)
+			Settings.TimeDilation, sldTimeDilation = ImGui.SliderInt("##TimeDilation", Settings.TimeDilation, 1, 10, Settings.TimeDilationSilderText)
+			ImGui.PopItemWidth()
+			ImGui.SameLine()
+			ImGui.PushItemWidth(70)
+			Settings.TimeDilationFS, cobTimeDilationFS = ImGui.Combo("##TimeDilationFS", Settings.TimeDilationFS, "Faster\0Slower\0")
+			ImGui.PopItemWidth()
+			ImGui.SameLine()
+			btnResetTimeDilation = ImGui.Button("Reset##TimeDilation")
+			Settings.IsTimePaused, cbIsTimePaused = ImGui.Checkbox("Stop Day/Night Cycle", Settings.IsTimePaused)
+			ImGui.Separator()
+			ImGui.Spacing()
+			ImGui.AlignTextToFramePadding()
+			ImGui.Text("Camera Control")
+			ImGui.SameLine()
+			btnResetCam = ImGui.Button("Reset Camera")
+			ImGui.PushItemWidth(200)
+			Settings.HFOV, sldHFOV = ImGui.SliderFloat("Field of Veiw", Settings.HFOV, 30, 150, "%.0f degrees")
+			Settings.Zoom, sldZoom = ImGui.SliderFloat("Zoom", Settings.Zoom, 1, 10, "%.0fx")
+			Settings.CameraPos.x, sldCamX = ImGui.SliderFloat("Camera Left Right", Settings.CameraPos.x, -20, 20, "%.1f")
+			Settings.CameraPos.y, sldCamY = ImGui.SliderFloat("Camera Forward Backward", Settings.CameraPos.y, -20, 20, "%.1f")
+			Settings.CameraPos.z, sldCamZ = ImGui.SliderFloat("Camera Up Down", Settings.CameraPos.z, -20, 20, "%.1f")
+			Settings.CameraOrientation.i, sldCamI = ImGui.SliderFloat("Camera Pitch", Settings.CameraOrientation.i, -180, 180, "%.2f", ImGuiSliderFlags.Logarithmic)
+			Settings.CameraOrientation.j, sldCamJ = ImGui.SliderFloat("Camera Roll", Settings.CameraOrientation.j, -180, 180, "%.2f", ImGuiSliderFlags.Logarithmic)
+			Settings.CameraOrientation.k, sldCamK = ImGui.SliderFloat("Camera Yaw", Settings.CameraOrientation.k, -180, 180, "%.2f", ImGuiSliderFlags.Logarithmic)
+			ImGui.PopItemWidth()
+			ImGui.Separator()
+			-- ImGui.Text("Location")
+			-- btnGetLocation = ImGui.Button("Get Current Location")
+			-- btnSaveLocation = ImGui.Button("Save Location...")
+			-- btnLoadLocation = ImGui.Button("Load Location...")
+			-- ImGui.Separator()
+			ImGui.Text("Misc")
+			Settings.AirTraffic, cbAirTraffic = ImGui.Checkbox("Disable Air Traffic (Useful for astrophotography)", Settings.AirTraffic)
+			Settings.Crowd, cbCrowd = ImGui.Checkbox("Disable Crowd (NPC pedestrians and vehicles)", Settings.Crowd)
+			Settings.Autosave, cbAutosave = ImGui.Checkbox("Disable Auto Save", Settings.Autosave)
+			Settings.BoostLOD, cbBoostLOD = ImGui.Checkbox("Boost Level of Details Distance", Settings.BoostLOD)
+			Settings.CameraShake, cbCameraShake = ImGui.Checkbox("Disable Camera Shake", Settings.CameraShake)
+			Settings.CityLight, cbCityLight = ImGui.Checkbox("Turn off street lights", Settings.CityLight)
+			btnVehicleLight = ImGui.Button("Toggle Vehicle Light")
+			ImGui.SameLine()
+			ImGui.AlignTextToFramePadding()
+			ImGui.Text("For using as flash lights")
+		end
+
 		ImGui.End()
 		CPS.setThemeEnd()
 	end
 end)
+
+registerForEvent("onOverlayOpen", function()
+	drawWindow = true
+	UpdateSettings()
+end)
+registerForEvent("onOverlayClose", function()
+	drawWindow = false
+end)
+
+function UpdateSettings()
+	Settings.IsTimePaused = TimeSystem:IsPausedState()
+	Settings.HFOV = math.deg(2 * math.atan( math.tan(math.rad(Game.GetPlayer():GetFPPCameraComponent():GetFOV()/2)) * Settings.AspectRatio ))
+	Settings.Zoom = Game.GetPlayer():GetFPPCameraComponent():GetZoom()
+	Settings.CameraPos = Game.GetPlayer():GetFPPCameraComponent():GetLocalPosition()
+	Settings.CameraOrientation = Game.GetPlayer():GetFPPCameraComponent():GetLocalOrientation()
+	if Game.GetQuestsSystem():GetFactStr("air_traffic_off") == 0 then Settings.AirTraffic = false else Settings.AirTraffic = true end
+	Settings.Crowd = not GameOptions.GetBool("Crowd", "Enabled")
+	Settings.Autosave = not GameOptions.GetBool("SaveConfig", "AutoSaveEnabled")
+	if GameOptions.GetFloat("LevelOfDetail", "DecalsHideDistance") == 40 and GameOptions.GetFloat("LevelOfDetail", "DynamicDecalsHideDistance") == 20 then Settings.BoostLOD = false else Settings.BoostLOD = true end
+	local settings = Game.GetSettingsSystem():GetRootGroup():GetGroups(true)
+	local gameplay_ss = settings[3]:GetGroups(true)
+	local acessibility_ss = gameplay_ss[1]:GetVars(true)
+	local camshake_ss = acessibility_ss[4]
+	if camshake_ss:GetIndex() == 0 then Settings.CameraShake = true else Settings.CameraShake = false end
+	local scriptSystem =  Game.GetScriptableSystemsContainer()
+	local cityLightSystem = scriptSystem:Get('CityLightSystem')
+	if cityLightSystem:GetState().value == "ForcedOFF" then Settings.CityLight = true else Settings.CityLight = false end
+end

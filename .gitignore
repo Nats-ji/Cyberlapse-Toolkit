@@ -1,1 +1,2 @@
-/cyberlapse_toolkit.log
+/cyberlapse_toolkit*.log
+db.sqlite3
