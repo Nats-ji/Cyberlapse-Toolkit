@@ -22,7 +22,7 @@ Best to use in companion with https://github.com/Nats-ji/Game-Cinematic-Timelaps
 Ask Google
 ### How to record a star trail video?
 Ask Google
-### Why should I use screanshots instead of screen record?
+### Why should I use screenshots instead of screen record?
 Ask Google
 ### How do I post-process the images?
 Ask Google
