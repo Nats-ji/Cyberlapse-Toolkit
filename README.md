@@ -8,6 +8,8 @@ Best to use in companion with https://github.com/Nats-ji/Game-Cinematic-Timelaps
 - Camera Control
 - Some useful toggles for timelapse
 
+![img](https://staticdelivery.nexusmods.com/mods/3333/images/1567/1567-1612914764-1954792205.png)
+
 # Install
 1. Install the latest version of Cyber Engine Tweaks
 2. Download and extract the files
