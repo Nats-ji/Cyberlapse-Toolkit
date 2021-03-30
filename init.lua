@@ -208,7 +208,7 @@ registerForEvent("onDraw", function()
 	if (drawWindow) then
 		CPS.setThemeBegin()
 		ImGui.SetNextWindowPos(0,500, ImGuiCond.FirstUseEver)
-		ImGui.Begin("Cyberlapse Toolkit", true, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize)
+		ImGui.Begin("Cyberlapse Toolkit", true, bit32.bor(ImGuiWindowFlags.NoResize, ImGuiWindowFlags.NoTitleBar, ImGuiWindowFlags.AlwaysAutoResize))
 
 		if icon then
 			CPS.CPDraw("icon", icon, 1)
