@@ -14,8 +14,9 @@ Best to use in companion with https://github.com/Nats-ji/Game-Cinematic-Timelaps
 
 # Install
 1. Install the latest version of Cyber Engine Tweaks
-2. Download and extract the files
-3. Copy `cyberlapse_toolkit` to `Cyberpunk 2077\bin\x64\plugins\cyber_engine_tweaks\mods\`
+2. Install the latest version of [CPStyling](https://www.nexusmods.com/cyberpunk2077/mods/1718/)
+3. Download and extract the files
+4. Copy `cyberlapse_toolkit` to `Cyberpunk 2077\bin\x64\plugins\cyber_engine_tweaks\mods\`
 
 # Usage
 1. This toolkit is not for average user to use.
