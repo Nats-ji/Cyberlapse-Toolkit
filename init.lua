@@ -17,7 +17,7 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 registerForEvent("onInit", function()
-	CPS = require("CPStyling")
+	CPS = GetMod("CPStyling"):New()
 	theme = CPS.theme
 	color = CPS.color
 	wWidth, wHeight = GetDisplayResolution()
@@ -47,13 +47,10 @@ registerForEvent("onInit", function()
 		CameraShake = false,
 		CityLight = false,
 	}
-	if CPS.fileExists("icon.png") then
-		icon = CPS.loadPNG("icon.png")
-	else
-		icon = nil
-	end
-    print("Timelapse Toolkit Loaded.")
-  end)
+	icon = loadPNG("icon.png")
+
+  print("Timelapse Toolkit Loaded.")
+end)
 
 -- registerHotkey("open_overlay", "Open Interface", function()
 -- 	drawWindow = not drawWindow
@@ -206,12 +203,12 @@ end)
 
 registerForEvent("onDraw", function()
 	if (drawWindow) then
-		CPS.setThemeBegin()
+		CPS:setThemeBegin()
 		ImGui.SetNextWindowPos(0,500, ImGuiCond.FirstUseEver)
 		ImGui.Begin("Cyberlapse Toolkit", true, bit32.bor(ImGuiWindowFlags.NoResize, ImGuiWindowFlags.NoTitleBar, ImGuiWindowFlags.AlwaysAutoResize))
 
 		if icon then
-			CPS.CPDraw("icon", icon, 1)
+			CPS:CPDraw("icon", icon, 1)
 			if ImGui.IsItemClicked() then drawBody = not drawBody end
 			ImGui.SameLine()
 			ImGui.AlignTextToFramePadding()
@@ -279,7 +276,7 @@ registerForEvent("onDraw", function()
 		end
 
 		ImGui.End()
-		CPS.setThemeEnd()
+		CPS:setThemeEnd()
 	end
 end)
 
@@ -309,4 +306,11 @@ function UpdateSettings()
 	local scriptSystem =  Game.GetScriptableSystemsContainer()
 	local cityLightSystem = scriptSystem:Get('CityLightSystem')
 	if cityLightSystem:GetState().value == "ForcedOFF" then Settings.CityLight = true else Settings.CityLight = false end
+end
+
+function loadPNG(filename)
+	local file = io.open(filename, "rb")
+	local image = CPS.loadPNG(file)
+	file:close()
+	return image
 end
